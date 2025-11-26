@@ -1,0 +1,63 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg-info/
+*.egg
+*.log
+
+# Virtual environments
+.venv/
+venv/
+env/
+.python-version
+
+# uv cache
+.uv/
+
+# Build / dist / coverage / caches
+build/
+dist/
+htmlcov/
+.coverage
+.coverage.*
+.cache/
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+.tox/
+.eggs/
+
+# IDE / редакторы
+.vscode/
+.idea/
+*.iml
+*.swp
+*~
+*.sublime-project
+*.sublime-workspace
+
+# Файлы окружения
+.env
+# Docker
+docker-compose.override.yml
+
+# Node / фронтенд (если появится)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.pnpm-debug.log*
+dist/
+build/
+.next/
+.nuxt/
+.vite/
+*.tsbuildinfo
+
+# ОС-специфичное
+.DS_Store
+Thumbs.db

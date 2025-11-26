@@ -1,0 +1,44 @@
+repos:
+  # Базовые утилитарные хуки
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0          # актуальный тег см. в releases репо
+    hooks:
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+      - id: check-yaml
+
+  # Ruff – линтер (без форматирования, только проверки + автофиксы)
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    # Версия ruff; пример из официальной доки – v0.14.6
+    rev: v0.14.6
+    hooks:
+      - id: ruff-check
+        args: [--fix]
+
+  # Black – форматер
+  - repo: https://github.com/psf/black-pre-commit-mirror
+    # Текущий релиз по докам: 25.11.0
+    rev: 25.11.0
+    hooks:
+      - id: black
+        # можно явно указать версию python, но не обязательно
+        # language_version: python3.13
+
+  # Mypy – статический анализ типов
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    # в этом репо используют теги вида v1.10.0 и т.п., выбери нужный из releases
+    rev: v1.10.0
+    hooks:
+      - id: mypy
+        # чтобы mypy в pre-commit совпадал по версии Python с проектом
+        args: ["--config-file=mypy.ini"]
+
+  # (опционально) локальный хук для pytest – руками, не на каждый коммит
+  - repo: local
+    hooks:
+      - id: pytest
+        name: pytest
+        entry: pytest
+        language: system
+        pass_filenames: false
+        stages: [manual]   # запускать явно: `pre-commit run pytest --all-files`

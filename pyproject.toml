@@ -1,0 +1,78 @@
+[project]
+name = "flagger"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+authors = [
+  { name = "Mikhail Sidorkin", email = "sidorkin.mikhail.v@gmail.com" }
+]
+dependencies = [
+  "fastapi",
+  "uvicorn[standard]",          # ASGI-сервер
+  "sqlalchemy",                 # ORM/ядро
+  "alembic",                    # миграции
+  "pydantic",                   # схемы
+  "pydantic-settings",          # конфиг через env
+  "asyncpg",                    # драйвер Postgres (async)
+  "python-dotenv",
+  "python-jose[cryptography]",   # JWT
+  "passlib[bcrypt]",             # хэширование паролей
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest",
+  "pytest-asyncio",
+  "httpx",
+  "mypy",
+  "ruff",
+  "black",
+  "pre-commit",
+  "pytest-cov",
+]
+
+[dependency-groups]
+dev = [
+  "pytest",
+  "pytest-asyncio",
+  "httpx",
+  "mypy",
+  "ruff",
+  "black",
+  "pre-commit",
+  "pytest-cov",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra --strict-markers --cov=backend --cov-report=term-missing"
+asyncio_mode = "auto"
+xfail_strict = true
+
+[tool.ruff]
+line-length = 100
+force-exclude = true
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B"]
+
+[tool.black]
+line-length = 100
+include = '\.pyi?$'
+exclude = '''
+/(
+  \.git
+  | \.venv
+  | build
+  | dist
+  | migrations
+)/
+'''
+
+[tool.hatch.build.targets.wheel]
+packages = ["app"]

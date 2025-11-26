@@ -1,0 +1,10 @@
+[run]
+branch = True
+source =
+    flagger
+
+[report]
+omit =
+    tests/*
+    .venv/*
+    */migrations/*
