@@ -50,6 +50,7 @@ build-backend = "hatchling.build"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+pythonpath = ["."]
 addopts = "-ra --strict-markers --cov=backend --cov-report=term-missing"
 asyncio_mode = "auto"
 xfail_strict = true
@@ -75,4 +76,4 @@ exclude = '''
 '''
 
 [tool.hatch.build.targets.wheel]
-packages = ["app"]
+packages = ["backend"]

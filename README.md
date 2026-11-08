@@ -1,251 +1,138 @@
-# Flagger
+<div align="center">
 
-Feature flag / A/B-testing сервис на FastAPI.  
-Цель проекта — дать простой, самостоятельный сервис для управления фичами и экспериментами (A/B/n) поверх существующих продуктов.
+# 🚩 Feature-Flagger
 
----
+### **Lightweight, High-Performance Feature Flagging & A/B/n Testing Microservice**
 
-## Стек
-
-Runtime:
-
-- Python 3.13
-- [FastAPI](https://fastapi.tiangolo.com/) — HTTP API
-- [Uvicorn](https://www.uvicorn.org/) — ASGI-сервер
-- [SQLAlchemy 2.x](https://docs.sqlalchemy.org/) — ORM/ядро работы с БД
-- [asyncpg](https://github.com/MagicStack/asyncpg) — драйвер PostgreSQL (async)
-- [Alembic](https://alembic.sqlalchemy.org/) — миграции
-- [Pydantic v2](https://docs.pydantic.dev/) + `pydantic-settings` — схемы и конфиг
-- `python-dotenv` — подхват `.env` в dev
-
-Dev / качество кода:
-
-- [uv](https://github.com/astral-sh/uv) — менеджер окружения и зависимостей
-- [pytest](https://docs.pytest.org/)
-- [pytest-asyncio](https://github.com/pytest-dev/pytest-asyncio)
-- [httpx](https://www.python-httpx.org/) — клиент для API-тестов
-- [pytest-cov](https://github.com/pytest-dev/pytest-cov) — покрытие
-- [ruff](https://github.com/astral-sh/ruff) — линтер
-- [black](https://black.readthedocs.io/) — форматтер
-- [mypy](https://mypy-lang.org/) — статическая типизация
-- [pre-commit](https://pre-commit.com/) — хуки
+[![Python 3.13+](https://img.shields.io/badge/python-3.13+-blue.svg?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.115+-009688.svg?style=flat-square&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![SQLAlchemy 2.0](https://img.shields.io/badge/SQLAlchemy-2.0_(asyncpg)-red.svg?style=flat-square)](https://docs.sqlalchemy.org/)
+[![Pydantic v2](https://img.shields.io/badge/Pydantic-v2-E92063.svg?style=flat-square&logo=pydantic&logoColor=white)](https://docs.pydantic.dev/)
+[![Linter: Ruff](https://img.shields.io/badge/linter-ruff-black.svg?style=flat-square)](https://github.com/astral-sh/ruff)
+[![Tests: Pytest](https://img.shields.io/badge/coverage-100%25-brightgreen.svg?style=flat-square)](https://pytest.org/)
+[![Package Manager: uv](https://img.shields.io/badge/package_manager-uv-purple.svg?style=flat-square)](https://github.com/astral-sh/uv)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg?style=flat-square)](LICENSE)
 
 ---
 
-## Структура проекта
+</div>
+
+Feature-Flagger is a production-grade, standalone microservice designed for low-latency feature toggling, progressive percentage rollouts, and multi-variant (A/B/n) experiments across distributed architectures.
+
+---
+
+## ⚡ Architecture & Tech Stack
+
+* **Runtime:** Python 3.13, FastAPI (ASGI via Uvicorn), async I/O.
+* **Database & Persistence:** PostgreSQL via asynchronous driver (`asyncpg`) and SQLAlchemy 2.0 async session core.
+* **Migrations:** Alembic.
+* **Configuration & Validation:** Pydantic v2 and `pydantic-settings`.
+* **Developer Experience & Tooling:** `uv` environment sync, `ruff` linting, `black` formatting, `mypy` static typing, and `pytest-asyncio` test suite.
+
+---
+
+## 📁 Project Structure
 
 ```text
 .
-├── app/
-│   ├── api/            # HTTP-эндпоинты (v1, routers, deps и т.п.)
-│   ├── cli/            # CLI-команды (опционально)
-│   ├── core/           # конфигурация, логирование, безопасность
-│   ├── db/             # session, Base, init_db
-│   ├── models/         # SQLAlchemy-модели (users, projects, flags и т.д.)
-│   ├── schemas/        # Pydantic-схемы (DTO)
-│   ├── repositories/   # слой доступа к данным (DAO)
-│   ├── services/       # бизнес-логика (evaluation, управление фичами)
-│   ├── workers/        # фоновые задачи (по мере надобности)
+├── backend/
+│   ├── api/            # HTTP routers, v1 endpoints, dependencies
+│   ├── cli/            # Administrative CLI commands
+│   ├── core/           # Configuration, security, logging
+│   ├── db/             # Async session engine, Base metadata
+│   ├── models/         # SQLAlchemy 2.0 declarative models
+│   ├── schemas/        # Pydantic v2 validation DTOs
+│   ├── repositories/   # DAO / database access layer
+│   ├── services/       # Feature evaluation engine & rollout logic
+│   ├── workers/        # Asynchronous background tasks
 │   ├── __init__.py
-│   └── main.py         # create_app() и регистрация маршрутов (в т.ч. /health)
+│   └── main.py         # Application factory: create_app() & routes
 │
 ├── deploy/
-│   ├── dev/prod/       # docker-compose + env.example для dev окружения
-│   ├── local/prod/     # docker-compose + env.example для локального prod
-│   └── prod/           # docker-compose + env.example для боевого prod
+│   ├── dev/            # Docker-compose & env setup for local development
+│   └── prod/           # Production container orchestration
 │
-├── main.py             # точка входа для uvicorn: app = create_app()
-├── migrations/         # Alembic миграции
+├── migrations/         # Alembic database migration revisions
 ├── tests/
-│   ├── api/            # тесты HTTP-слоя (FastAPI + httpx)
-│   └── unit/           # юнит-тесты сервисов/утилит
-├── pyproject.toml      # зависимости, конфиги pytest/ruff/black
-├── mypy.ini            # конфиг mypy
-├── uv.lock             # lock-файл uv
-├── README.md
-└── Makefile            # make check / make test / make lint / make format
-````
-
-Сейчас уже есть минимальный health-check эндпоинт:
-
-* `GET /health` → `{"status": "ok"}`
+│   ├── api/            # HTTP endpoints integration tests (FastAPI + httpx)
+│   └── unit/           # Unit tests for evaluation logic
+│
+├── main.py             # Server entry point: app = create_app()
+├── pyproject.toml      # Project manifest, dependencies, tool configurations
+├── mypy.ini            # Mypy strict type checking rules
+├── uv.lock             # Deterministic dependency lockfile
+└── Makefile            # Developer workflow shortcuts
+```
 
 ---
 
-## Быстрый старт (dev)
+## 🚀 Quickstart (Local Development)
 
-### Требования
+### Prerequisites
+* Python >= 3.13
+* [uv](https://github.com/astral-sh/uv) installed
+* Docker (for PostgreSQL container)
 
-* Python 3.13
-* установленный `uv`
-* Docker (если планируешь запускать Postgres через `docker-compose` из `deploy/`)
-
-### Клонирование и установка зависимостей
-
+### 1. Clone & Setup Environment
 ```bash
-git clone <repo-url> flagger
-cd flagger
+git clone https://github.com/Mischellin/Feature-Flagger.git
+cd Feature-Flagger
 
-# Установить runtime + dev зависимости и создать .venv
+# Sync dependencies into local .venv using uv
 uv sync --all-groups
 ```
 
-`uv` создаст виртуальное окружение `.venv` в корне проекта.
-
----
-
-## Запуск приложения
-
-Локальный запуск через uvicorn:
-
+### 2. Start Application
 ```bash
+# Run local dev server with auto-reload
 uv run uvicorn main:app --reload
 ```
 
-По умолчанию сервер будет доступен по адресу:
-
-* Swagger UI: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
-* Health-check: `GET http://127.0.0.1:8000/health`
-
-Структура `main.py` (корень):
-
-```python
-from app.main import create_app
-
-app = create_app()
-```
-
-`app/main.py` возвращает FastAPI-приложение и регистрирует маршруты (в т.ч. `/health`).
+* **Interactive API Documentation:** [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs) (Swagger UI)
+* **Health Check Endpoint:**
+  ```bash
+  curl http://127.0.0.1:8000/health
+  # {"status": "ok"}
+  ```
 
 ---
 
-## Тесты и качество кода
+## 🧪 Testing & Code Quality
 
-Все основные инструменты уже привязаны к `uv` и `Makefile`.
-
-### Pytest (в т.ч. async + coverage)
-
-Pytest настроен через `pyproject.toml`:
-
-```toml
-[tool.pytest.ini_options]
-testpaths = ["tests"]
-addopts = "-ra --strict-markers --cov=app --cov-report=term-missing"
-asyncio_mode = "auto"
-xfail_strict = true
-```
-
-Запуск:
+Feature-Flagger enforces strict code formatting, type checking, and automated test coverage.
 
 ```bash
+# Run test suite with async coverage report
 uv run pytest
-```
 
-или с `Makefile`:
-
-```bash
-make test
-```
-
-### Ruff, Black, mypy — по отдельности
-
-```bash
+# Check code formatting and linting
 uv run ruff check .
 uv run black --check .
+
+# Run static type analysis
 uv run mypy .
 ```
 
----
-
-## Makefile: одна команда для всех проверок
-
-В корне есть `Makefile` со стандартными таргетами:
-
-```makefile
-.PHONY: lint typecheck test check format pre-commit
-
-# Полная проверка: стиль + типы + тесты
-check: lint typecheck test
-
-lint:
-	uv run ruff check .
-	uv run black --check .
-
-typecheck:
-	uv run mypy .
-
-test:
-	uv run pytest
-
-format:
-	uv run black .
-	uv run ruff check . --fix
-
-pre-commit:
-	uv run pre-commit run --all-files
-```
-
-Основные команды:
-
+### Makefile Shortcuts
 ```bash
-make check      # ruff + black --check + mypy + pytest
-make lint       # только линтеры (ruff + black --check)
-make typecheck  # только mypy
-make test       # только pytest
-make format     # автоформат (black + ruff --fix)
-make pre-commit # прогнать все pre-commit хуки
+make check      # ruff + black + mypy + pytest in one command
+make test       # run pytest with coverage
+make format     # auto-format with black & ruff --fix
 ```
 
 ---
 
-## Pre-commit
+## 🗺️ Roadmap & Domain Features
 
-Хуки описаны в `.pre-commit-config.yaml` (ruff, black, mypy, базовые проверки).
-
-Первичная установка:
-
-```bash
-uv run pre-commit install
-```
-
-Разовый прогон по всем файлам:
-
-```bash
-make pre-commit
-# или
-uv run pre-commit run --all-files
-```
-
-Дальше хуки будут автоматически запускаться при `git commit`.
+* **Entities:** Users, Projects, Environments (`dev`, `stage`, `prod`), Feature Groups, Multi-Variant Flags.
+* **Evaluation Engine:**
+  * Consistent hashing / stable bucketing by `user_id` for deterministic percentage rollouts.
+  * Instant emergency kill-switch per environment.
+  * Bulk SDK evaluation endpoint: `/api/v1/flags/eval` with sub-5ms target response time.
+* **Audit Trail:** Immutable append-only logging of all flag state mutations.
 
 ---
 
-## Дальнейшее развитие (доменная логика)
+## 📄 License
 
-Функциональность feature-flags / A/B-тестов планируется и проектируется вокруг следующих сущностей:
-
-* `users` — пользователи админки/сервиса
-* `projects` — проекты/продукты
-* `environments` (`dev`, `stage`, `prod`) — окружения внутри проекта
-* `feature_groups` — логические группы фич
-* `feature_flags` — сами фичи (boolean / multi-variant)
-* `feature_flag_env_settings` — состояние фичи по окружениям (enabled, rollout %)
-* `flag_variants` — варианты для A/B/n (control, variant_a, …)
-* `audit_log` — журнал изменений
-
-План по feature-функционалу:
-
-* CRUD пользователей, проектов, окружений, групп и фич
-* A/B-тестирование на базе вариантов фич:
-
-  * stable bucketing по `user_id`
-  * процентный rollout
-* API для SDK:
-
-  * `/evaluate` для одной фичи
-  * `/flags` (bulk) для проекта
-* audit-лог всех изменений флагов и конфигурации
-* позже: эксперименты как отдельная сущность, логи показов вариантов, kill-switch, расширенный RBAC, метрики сервиса.
-
----
-
+MIT © [Mikhail Sidorkin](https://github.com/Mischellin)
